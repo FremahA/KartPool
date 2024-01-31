@@ -1,5 +1,5 @@
 # Kartpool
-> Community driven delivery platform for the ones who need it the most
+> Community driven delivery platform for the ones who need it the most. Store runs made easy.
 
 ### App Screenshot
 ![](https://miro.medium.com/max/1835/1*ROFwy3bSYmWy39qLmlTZTw.png)
@@ -47,6 +47,3 @@ I highly recommend a Docker installation:
 
 Once you connect to the database, enable the PostGIS extension by typing `enable extension postgis`
 
-# Credits
-
-I've had much help from this [excellent tutorial](https://realpython.com/location-based-app-with-geodjango-tutorial/)
