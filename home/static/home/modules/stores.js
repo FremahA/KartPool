@@ -32,12 +32,16 @@ export function updateSelectedStore(storeId) {
  * @return {Promise<StoresGeoJSON>} Stores in GeoJSON
  */
 export async function displayNearbyStores(map, latitude, longitude) {
-    const stores = await fetchNearbyStores(latitude, longitude);
-    const storesGeoJson = convertToGeoJson(stores);
-    plotStoresOnMap(map, storesGeoJson);
-    return storesGeoJson;
+    try {
+        const stores = await fetchNearbyStores(latitude, longitude);
+        const storesGeoJson = convertToGeoJson(stores);
+        plotStoresOnMap(map, storesGeoJson);
+        return storesGeoJson;
+    } catch(error) {
+        console.error(error);
+    }
+    
 }
-
 
 /**
  * Set-up event handlers for each wishlist element
@@ -45,5 +49,22 @@ export async function displayNearbyStores(map, latitude, longitude) {
  * @param {StoresGeoJSON} storesGeoJson
  */
 export function setStoreNavigation(map, storesGeoJson) {
-  
+    console.log("inside");
+    const wishlistElements = document.getElementsByClassName('wishlist');
+    console.log(wishlistElements)
+
+    for (let i=0; i<wishlistElements.length; i++) {
+        wishlistElements[i].onclick = (event) => {
+            const storeId = event.currentTarget.getAttribute('data-store-id');
+            for (let point of storesGeoJson.features) {
+                if (storeId === point.properties.id) {
+                    flyToStore(map, point);
+                    displayStoreDetails(map, point);
+                    updateSelectedStore(storeId);
+                    break;
+                }
+            }
+        }
+    }
+    console.log("event binding is happening");
 }

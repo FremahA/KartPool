@@ -2,7 +2,7 @@ import {
     updateSelectedStore,
 } from './stores.js';
 
-mapboxgl.accessToken = 'pk.eyJ1IjoiZnJlbWFoYSIsImEiOiJjbHJ0N2F5NzYwM29wMmpwYmdhcG1rYmRkIn0.LypN67PuUfO5cCM6uV312A';
+mapboxgl.accessToken = 'pk.eyJ1IjoiZnJlbWFoYSIsImEiOiJjbHJ6cXB5ZW4xdXhnMmtsbTI1aXg3bmMwIn0.BxuAFV7Fl0hFQJyo3Daq_A';
 
 /**
  * @typedef {import('./api').Store} Store
@@ -34,8 +34,8 @@ export function addMap() {
         center: [77.645296, 12.978624],
         zoom: 2
     });
-
-    map.addControl(new mapboxgl.NavigationControl())
+    
+    map.addControl(new mapboxgl.NavigationControl());
 
     return map;
 }
@@ -46,9 +46,11 @@ export function addMap() {
  * @param {function} geocoderCallback - The callback that handles the response.
  */
 export function addGeocoder(map, geocoderCallback) {
-    const geocoder = new MapboxGeocoder({ accessToken: mapboxgl.accessToken, mapboxgl: mapboxgl});
+    const geocoder = new MapboxGeocoder({accessToken: mapboxgl.accessToken, mapboxgl: mapboxgl});
     map.addControl(geocoder);
-    geocoder.on("result", (data) => { geocoderCallback(data);
+    
+    geocoder.on('result', (data) => {
+        geocoderCallback(data);
     });
 }
 
@@ -59,10 +61,10 @@ export function addGeocoder(map, geocoderCallback) {
  */
 export function convertToGeoJson(stores) {
     return {
-        type: "FeatureCollection",
+        type: 'FeatureCollection',
         features: stores.map(store => {
             return {
-                type: "Feature",
+                type: 'Feature',
                 geometry: {
                     type: 'Point',
                     coordinates: [store.longitude, store.latitude]
@@ -73,7 +75,7 @@ export function convertToGeoJson(stores) {
                     address: store.address,
                     phone: store.phone,
                     distance: store.distance,
-                    rating: store.rating,
+                    rating: store.rating,                                                                                                                                                                                                                                                                                                                                                                                                                                       
                 }
             }
         })
@@ -86,21 +88,29 @@ export function convertToGeoJson(stores) {
  * @param {StoresGeoJSON} storesGeoJson
  */
 export function plotStoresOnMap(map, storesGeoJson) {
-   for(let store of storesGeoJson.features) {
-    let el = document.createElement('div');
-    el.className = 'store';
-    el.title = `${store.properties.name}\n` + 
-    `approximately ${store.properties.distance.toFixed(2)} km away\n` + 
-    `Address: ${store.properties.address || "N/A"}\n` + 
-    `Phone: ${store.properties.phone || "N/A"}\n` +
-    `Rating: ${store.properties.rating || "N/A"}`;
-    new mapboxgl.Marker(el)
-    .setLngLat(store.geometry.coordinates)
-    .addTo(map);
-    el.addEventListener('click', function(e) {
-        updateSelectedStore(store.properties.id);
-    }); 
-   } 
+    for (let store of storesGeoJson.features) {
+        // create a HTML element for each feature
+        let el = document.createElement('div');
+        el.className = 'store';
+        el.title = `${store.properties.name}\n` +
+        `approximately ${store.properties.distance.toFixed(2)} km away\n` +
+        `Address: ${store.properties.address || 'N/A'}\n` +
+        `Phone: ${store.properties.phone || 'N/A'}\n` +
+        `Rating: ${store.properties.rating || 'N/A'}`;
+      
+        // make a marker for each feature and add to the map
+        new mapboxgl.Marker(el)
+          .setLngLat(store.geometry.coordinates)
+          .addTo(map);
+
+        el.addEventListener('click', function(e) {
+            /* Fly to the point */
+            flyToStore(map, store);
+            /* Close all other popups and display popup for clicked store */
+            displayStoreDetails(map, store);
+            updateSelectedStore(store.properties.id);
+        });
+    }
 }
 
 /**
@@ -109,7 +119,10 @@ export function plotStoresOnMap(map, storesGeoJson) {
  * @param {StoreFeatureObject} point
  */
 export function flyToStore(map, point) {
-
+    map.flyTo({
+        center: point.geometry.coordinates,
+        zoom: 20
+    });
 }
 
 /**
@@ -118,5 +131,32 @@ export function flyToStore(map, point) {
  * @param {StoreFeatureObject} point
  */
 export function displayStoreDetails(map, point) {
-    
+    const popUps = document.getElementsByClassName('mapboxgl-popup');
+    /** Check if there is already a popup on the map and if so, remove it */
+    if (popUps[0]){
+        popUps[0].remove();
+    }
+
+    const popup = new mapboxgl.Popup({ closeOnClick: false })
+        .setLngLat(point.geometry.coordinates)
+        .setHTML(`
+            <details>
+                <summary><h2>${point.properties.name}</h2></summary>
+                <dl>
+                    <dt>Distance</dt>
+                    <dd>Approximately <strong>${point.properties.distance.toFixed(2)} km</strong> away</dd>
+
+                    <dt>Address</dt>
+                    <dd>${point.properties.address || 'N/A'}</dd>
+
+                    <dt>Phone</dt>
+                    <dd>${point.properties.phone || 'N/A'}</dd>
+
+                    <dt>Rating</dt>
+                    <dd>${point.properties.rating || 'N/A'}</dd>
+                </dl>
+            </details>
+        `)
+        .addTo(map);
+    return popup;
 }

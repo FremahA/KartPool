@@ -16,13 +16,13 @@ import {
     addGeocoder,
 } from './map.js';
 
-export const USERNAME = document.body.getAttribute("data-username");
+export const USERNAME = document.body.getAttribute('data-username');
 
 let MAP = {};
 
 MAP = addMap();
 
-geocoder = addGeocoder(MAP, (data) => {
+addGeocoder(MAP, (data) => {
     Promise.all([
         displayNearbyStores(MAP, data.result.center[1], data.result.center[0]),
         displayNearbyWishlists(data.result.center[1], data.result.center[0]),
@@ -33,3 +33,13 @@ geocoder = addGeocoder(MAP, (data) => {
     });
   
 });
+
+document.getElementById('add-wishlist').onclick = function(e) {
+    createWishlist();
+}
+
+const wishlists = document.getElementsByClassName('wishlists');
+
+for (let i=0; i<wishlists.length; i++) {
+    wishlists[i].addEventListener('click', updateWishlistStatus);
+}
